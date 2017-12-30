@@ -6,16 +6,20 @@ import threading
 import cv2
 lock = threading.Lock()
 camera_open = False # Check if camera is on
+frames = 0
 close = False # Set to true to make the camera close
 def read_loop(port,camera_state): # camera_state should be CameraProcessor
-    global camera_open,close
+    global camera_open,close,frames
     vc = cv2.VideoCapture(port)
+    # Set up some things (1080p res)
+    vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    vc.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+
     while not close:
         _,f = vc.read()
+        frames += 1
         if not camera_open: camera_open = True
-        #
-        # Put some code here later to setup 1080p resolution
-        #
         lock.acquire()
         camera_state.frame = f
         lock.release()
@@ -35,4 +39,4 @@ class CameraProcessor:
         close = True
 
 def is_on():
-return camera_open
+    return camera_open
